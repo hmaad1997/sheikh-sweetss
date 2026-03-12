@@ -1,5 +1,7 @@
 # نظام جرد حلويات الشيخ 🍰
 
+© 2026 Ahmed Al-Turaifi. All Rights Reserved.
+
 نظام إدارة مالية متكامل واحترافي لمحل حلويات، يوفر واجهة سريعة تشبه الكاشير مع تقارير شاملة وتحكم كامل بالوصول.
 
 ## ✨ المميزات الرئيسية
@@ -178,9 +180,12 @@ pnpm build
 
 ---
 
-## 📝 الترخيص
+## 📝 الترخيص والملكية
+
+© 2026 Ahmed Al-Turaifi. All Rights Reserved.
 
 هذا المشروع خاص بـ حلويات الشيخ.
+جميع الحقوق محفوظة لأحمد الطريفي.
 
 ---
 
@@ -230,8 +235,18 @@ pnpm build
 
 ---
 
+## 📜 Copyright & License
+
+© 2026 Ahmed Al-Turaifi. All Rights Reserved.
+
+This project is proprietary software owned by Ahmed Al-Turaifi. Unauthorized copying, modification, or distribution of this software is strictly prohibited.
+
+---
+
 **آخر تحديث:** مارس 2026
 
 **الإصدار:** 1.0.0
 
 **الحالة:** 🟢 جاهز للإنتاج
+
+**المالك:** Ahmed Al-Turaifi
