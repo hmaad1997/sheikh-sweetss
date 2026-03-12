@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, transactions, settings } from "../drizzle/schema";
+import { InsertUser, users, transactions, settings, authorizedUsers, accessLogs } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -161,4 +161,66 @@ export async function getSettings() {
   
   const result = await db.select().from(settings).limit(1);
   return result.length > 0 ? result[0] : null;
+}
+
+export async function isUserAuthorized(email: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.select().from(authorizedUsers)
+    .where(and(eq(authorizedUsers.email, email), eq(authorizedUsers.isActive, true)))
+    .limit(1);
+  
+  return result.length > 0;
+}
+
+export async function getAuthorizedUser(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(authorizedUsers)
+    .where(eq(authorizedUsers.email, email))
+    .limit(1);
+  
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function addAuthorizedUser(data: {
+  email: string;
+  name: string;
+  role: "owner" | "manager" | "employee";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(authorizedUsers).values(data);
+}
+
+export async function getAllAuthorizedUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(authorizedUsers).orderBy(desc(authorizedUsers.createdAt));
+}
+
+export async function logAccessAttempt(data: {
+  email: string;
+  status: "allowed" | "denied";
+  reason?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  return await db.insert(accessLogs).values(data);
+}
+
+export async function getAccessLogs(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(accessLogs)
+    .orderBy(desc(accessLogs.createdAt))
+    .limit(limit);
 }

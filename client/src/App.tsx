@@ -12,12 +12,16 @@ import DailyInventoryPage from "./pages/DailyInventoryPage";
 import CashBalancePage from "./pages/CashBalancePage";
 import ReportsPage from "./pages/ReportsPage";
 import PrintReportPage from "./pages/PrintReportPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AccessDeniedPage from "./pages/AccessDeniedPage";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, Users } from "lucide-react";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { data: authorizedUser } = trpc.accessControl.getAuthorizedUser.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = [
@@ -27,6 +31,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     { label: "جرد الكاش", path: "/cash-balance" },
     { label: "التقارير", path: "/reports" },
     { label: "التقرير المطبوع", path: "/print-report" },
+    ...(authorizedUser?.role === "owner" ? [{ label: "إدارة المستخدمين", path: "/admin/users" }] : []),
   ];
 
   return (
@@ -51,7 +56,22 @@ function MainLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-4">
-              {user && <span className="text-sm text-gray-600">{user.name}</span>}
+              {user && (
+                <div className="text-sm">
+                  <p className="text-gray-800 font-medium">{user.name}</p>
+                  <p className="text-gray-500 text-xs">
+                    {authorizedUser?.role === "owner" ? "مالك" : authorizedUser?.role === "manager" ? "مدير" : "موظف"}
+                  </p>
+                </div>
+              )}
+              {authorizedUser?.role === "owner" && (
+                <a href="/admin/users">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    الإدارة
+                  </Button>
+                </a>
+              )}
               <Button
                 onClick={() => logout()}
                 variant="outline"
@@ -94,8 +114,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
 function Router() {
   const { user, loading } = useAuth();
+  const { data: hasAccess, isLoading: checkingAccess } = trpc.accessControl.checkAccess.useQuery(
+    undefined,
+    { enabled: !!user }
+  );
 
-  if (loading) {
+  if (loading || checkingAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50">
         <div className="text-center">
@@ -122,6 +146,10 @@ function Router() {
     );
   }
 
+  if (!hasAccess) {
+    return <AccessDeniedPage />;
+  }
+
   return (
     <MainLayout>
       <Switch>
@@ -131,6 +159,7 @@ function Router() {
         <Route path="/cash-balance" component={CashBalancePage} />
         <Route path="/reports" component={ReportsPage} />
         <Route path="/print-report" component={PrintReportPage} />
+        <Route path="/admin/users" component={AdminUsersPage} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

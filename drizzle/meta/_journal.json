@@ -15,6 +15,13 @@
       "when": 1773285363657,
       "tag": "0001_dark_felicia_hardy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1773285952224,
+      "tag": "0002_right_the_fury",
+      "breakpoints": true
     }
   ]
 }

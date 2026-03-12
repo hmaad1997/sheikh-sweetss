@@ -38,3 +38,35 @@ export const settings = mysqlTable("settings", {
 
 export type Settings = typeof settings.$inferSelect;
 export type InsertSettings = typeof settings.$inferInsert;
+
+/**
+ * Authorized users table - قائمة المستخدمين المسموح لهم
+ */
+export const authorizedUsers = mysqlTable("authorizedUsers", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ["owner", "manager", "employee"]).default("employee").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AuthorizedUser = typeof authorizedUsers.$inferSelect;
+export type InsertAuthorizedUser = typeof authorizedUsers.$inferInsert;
+
+/**
+ * Access logs table - سجل محاولات الوصول
+ */
+export const accessLogs = mysqlTable("accessLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["allowed", "denied"]).notNull(),
+  reason: text("reason"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: text("userAgent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AccessLog = typeof accessLogs.$inferSelect;
+export type InsertAccessLog = typeof accessLogs.$inferInsert;

@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { addTransaction, getTransactionsByDate, getTransactionsByMonth, getTransactionsByYear, getAllTransactions, getSettings } from "./db";
 import { sendWhatsAppMessage, generateDailyReportMessage } from "./whatsapp";
+import { accessControlRouter } from "./access-control-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -81,6 +82,8 @@ export const appRouter = router({
         return await sendWhatsAppMessage(input.phoneNumber, message);
       }),
   }),
+
+  accessControl: accessControlRouter,
 });
 
 export type AppRouter = typeof appRouter;
