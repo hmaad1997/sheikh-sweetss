@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, transactions, settings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,76 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function addTransaction(data: {
+  date: Date;
+  description: string;
+  type: "revenue" | "expense";
+  paymentMethod: "cash" | "click" | "visa" | "bank";
+  amount: string;
+  notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(transactions).values({
+    date: data.date,
+    description: data.description,
+    type: data.type,
+    paymentMethod: data.paymentMethod,
+    amount: data.amount,
+    notes: data.notes,
+  });
+}
+
+export async function getTransactionsByDate(date: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  return await db.select().from(transactions)
+    .where(and(gte(transactions.date, startOfDay), lte(transactions.date, endOfDay)))
+    .orderBy(desc(transactions.createdAt));
+}
+
+export async function getTransactionsByMonth(year: number, month: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0, 23, 59, 59);
+  
+  return await db.select().from(transactions)
+    .where(and(gte(transactions.date, startDate), lte(transactions.date, endDate)))
+    .orderBy(desc(transactions.date));
+}
+
+export async function getTransactionsByYear(year: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31, 23, 59, 59);
+  
+  return await db.select().from(transactions)
+    .where(and(gte(transactions.date, startDate), lte(transactions.date, endDate)))
+    .orderBy(desc(transactions.date));
+}
+
+export async function getAllTransactions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(transactions).orderBy(desc(transactions.date));
+}
+
+export async function getSettings() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(settings).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
